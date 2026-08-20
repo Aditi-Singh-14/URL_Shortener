@@ -156,11 +156,3 @@ curl http://localhost:8000/info/aZ3kLQ
 - **Validation**: Pydantic's `HttpUrl` type validates that submitted URLs are
   well-formed before they ever reach the database.
 
-## Possible Extensions (not implemented, out of scope for this assessment)
-
-- Custom/vanity short codes chosen by the user
-- Expiring links (TTL)
-- Rate limiting
-- Authentication so users can manage only their own links
-- Analytics beyond a simple visit counter (referrers, timestamps per visit)
-- Dockerized setup (`Dockerfile` + `docker-compose.yml`) for one-command local startup
