@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="URL Shortener API",
-    description="A basic URL shortener built with FastAPI + raw SQL (asyncpg) on PostgreSQL",
+    description="A basic URL shortener built with FastAPI and PostgreSQL",
     version="1.0.0",
     lifespan=lifespan,
 )

@@ -134,3 +134,8 @@ curl http://localhost:8000/info/aZ3kLQ
 - **Connection pooling**: a single `asyncpg` pool is created on app startup (via FastAPI's `lifespan` context manager) and shared across all requests, rather than opening a new database connection per request.
 - **Schema management**: the `urls` table is created with a plain `CREATE TABLE IF NOT EXISTS` on startup, which is fine for the scope of this assessment. In a production system this would be replaced with proper migrations (e.g. Alembic or raw versioned SQL migration files).
 - **Validation**: Pydantic's `HttpUrl` type validates that submitted URLs are well-formed before they ever reach the database.
+
+
+## A Snapshot from Swagger UI
+![Swagger UI Screenshot](screenshots/Swagger%20UI.png)
+![Swagger UI Screenshot](screenshots/URL%20Shortener.png)
