@@ -19,7 +19,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 
 from app.database import connect_to_db, close_db_connection, get_pool
-from app.schemas import URLCreateRequest, URLCreateResponse, URLInfoResponse
+from app.schema import URLCreateRequest, URLCreateResponse, URLInfoResponse
 
 load_dotenv()
 

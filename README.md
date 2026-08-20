@@ -22,17 +22,17 @@ A basic URL shortener built with **FastAPI** and **PostgreSQL** via the async `a
 
 ## Project Structure
 
-\```
+```
 url-shortener/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py       # FastAPI app, routes, and short-code generation
-│   ├── database.py    # asyncpg connection pool + table/index creation
-│   └── schema.py      # Pydantic request/response models
+│   ├── main.py         # FastAPI app, routes, and short-code generation
+│   ├── database.py     # asyncpg connection pool + table/index creation
+│   └── schema.py       # Pydantic request/response models
 ├── requirements.txt
 ├── .env.example
 └── README.md
-\```
+```
 
 ## How It Works
 
@@ -51,50 +51,45 @@ url-shortener/
 
 ### 2. Create the database
 
-\```bash
+```bash
 createdb url_shortener
-\```
+```
 
 If that fails with a role/permission error, try:
 
-\```bash
+```bash
 psql postgres -c "CREATE DATABASE url_shortener;"
-\```
+```
 
 ### 3. Install dependencies
 
-\```bash
+```bash
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-\```
+```
 
 ### 4. Configure environment variables
 
-\```bash
+```bash
 cp .env.example .env
-\```
+```
 
-Edit `.env` with your PostgreSQL credentials. On macOS with a Homebrew
-install, the default user is usually your system username with no password
-rather than `postgres:postgres`:
+Edit `.env` with your PostgreSQL credentials. On macOS with a Homebrew install, the default user is usually your system username with no password rather than `postgres:postgres`:
 
-\```
+```
 DATABASE_URL=postgresql://<your_username>@localhost:5432/url_shortener
 BASE_URL=http://localhost:8000
 SHORT_CODE_LENGTH=6
-\```
+```
 
 ### 5. Run the server
 
-\```bash
+```bash
 uvicorn app.main:app --reload
-\```
+```
 
-The API will be available at `http://localhost:8000`. The `urls` table and
-its index are created automatically on startup (see `connect_to_db()` in
-`app/database.py`) — no separate migration step is needed for this
-project's scope.
+The API will be available at `http://localhost:8000`. The `urls` table and its index are created automatically on startup (see `connect_to_db()` in `app/database.py`) — no separate migration step is needed for this project's scope.
 
 ### 6. Try it out
 
@@ -102,65 +97,40 @@ Interactive docs (Swagger UI): `http://localhost:8000/docs`
 
 **Shorten a URL:**
 
-\```bash
+```bash
 curl -X POST http://localhost:8000/shorten \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.example.com/some/very/long/path"}'
-\```
+```
 
 Response:
 
-\```json
+```json
 {
   "short_code": "aZ3kLQ",
   "short_url": "http://localhost:8000/aZ3kLQ",
   "original_url": "https://www.example.com/some/very/long/path"
 }
-\```
+```
 
 **Visit the short link (redirects):**
 
-\```bash
+```bash
 curl -L http://localhost:8000/aZ3kLQ
-\```
+```
 
 **Check stats without redirecting:**
 
-\```bash
+```bash
 curl http://localhost:8000/info/aZ3kLQ
-\```
+```
 
 ## Design Notes / Trade-offs
 
-- **Short code generation**: random 6-character alphanumeric strings rather
-  than a base62-encoded auto-increment ID. This avoids leaking the total
-  number of URLs created and makes codes less guessable. Collisions are
-  handled by catching `asyncpg.exceptions.UniqueViolationError` and retrying
-  with a new code (extremely unlikely at this length, but not ignored).
-- **Duplicate URLs**: shortening the same long URL twice returns the same
-  short code rather than creating redundant rows.
-- **Redirect status code**: uses a `307 Temporary Redirect` rather than
-  `301`/`308` permanent, so browsers/clients don't cache the redirect
-  aggressively — useful in case a URL entry is ever updated.
-- **Atomic visit counting**: the redirect endpoint updates `visit_count` and
-  fetches `original_url` in a single `UPDATE ... RETURNING` statement rather
-  than a separate `SELECT` followed by `UPDATE`, avoiding a race condition
-  under concurrent requests to the same short code.
-- **Connection pooling**: a single `asyncpg` pool is created on app startup
-  (via FastAPI's `lifespan` context manager) and shared across all requests,
-  rather than opening a new database connection per request.
-- **Schema management**: the `urls` table is created with a plain
-  `CREATE TABLE IF NOT EXISTS` on startup, which is fine for the scope of
-  this assessment. In a production system this would be replaced with
-  proper migrations (e.g. Alembic or raw versioned SQL migration files).
-- **Validation**: Pydantic's `HttpUrl` type validates that submitted URLs are
-  well-formed before they ever reach the database.
-
-## Possible Extensions (not implemented, out of scope for this assessment)
-
-- Custom/vanity short codes chosen by the user
-- Expiring links (TTL)
-- Rate limiting
-- Authentication so users can manage only their own links
-- Analytics beyond a simple visit counter (referrers, timestamps per visit)
-- Dockerized setup (`Dockerfile` + `docker-compose.yml`) for one-command local startup
+- **Short code generation**: random 6-character alphanumeric strings rather than a base62-encoded auto-increment ID. This avoids leaking the total number of URLs created and makes codes less guessable. Collisions are handled by catching `asyncpg.exceptions.UniqueViolationError` and retrying with a new code (extremely unlikely at this length, but not ignored).
+- **Duplicate URLs**: shortening the same long URL twice returns the same short code rather than creating redundant rows.
+- **Redirect status code**: uses a `307 Temporary Redirect` rather than `301`/`308` permanent, so browsers/clients don't cache the redirect aggressively — useful in case a URL entry is ever updated.
+- **Atomic visit counting**: the redirect endpoint updates `visit_count` and fetches `original_url` in a single `UPDATE ... RETURNING` statement rather than a separate `SELECT` followed by `UPDATE`, avoiding a race condition under concurrent requests to the same short code.
+- **Connection pooling**: a single `asyncpg` pool is created on app startup (via FastAPI's `lifespan` context manager) and shared across all requests, rather than opening a new database connection per request.
+- **Schema management**: the `urls` table is created with a plain `CREATE TABLE IF NOT EXISTS` on startup, which is fine for the scope of this assessment. In a production system this would be replaced with proper migrations (e.g. Alembic or raw versioned SQL migration files).
+- **Validation**: Pydantic's `HttpUrl` type validates that submitted URLs are well-formed before they ever reach the database.
