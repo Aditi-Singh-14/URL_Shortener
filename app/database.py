@@ -14,7 +14,7 @@ async def connect_to_db():
     async with pool.acquire() as conn:
         await conn.execute(
             """
-            CREATE TABLE IF NOT EXISTS usls (
+            CREATE TABLE IF NOT EXISTS urls (
                 id SERIAL PRIMARY KEY,
                 short_code VARCHAR(16) UNIQUE NOT NULL,
                 original_url VARCHAR(2048) NOT NULL,
@@ -33,5 +33,5 @@ async def close_db_connection():
     if pool:
         await pool.close()
     
-def get_db_pool() -> asyncpg.pool.Pool:
+def get_pool() -> asyncpg.pool.Pool:
     return pool
